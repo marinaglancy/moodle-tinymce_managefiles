@@ -35,15 +35,46 @@ require_once($CFG->libdir."/formslib.php");
  * @copyright 2013 Marina Glancy
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class repository_areafiles_manage_form extends moodleform {
+class tinymce_managefiles_manage_form extends moodleform {
     function definition() {
+        global $PAGE;
         $mform = $this->_form;
 
         $itemid           = $this->_customdata['draftitemid'];
-        $options        = $this->_customdata['options'];
+        $options          = $this->_customdata['options'];
+        $files            = $this->_customdata['files'];
+
+        $mform->addElement('hidden', 'itemid');
+        $mform->addElement('hidden', 'maxbytes');
+        $mform->addElement('hidden', 'accepted_types');
+        $mform->addElement('hidden', 'return_types');
+        $mform->addElement('hidden', 'context');
 
         $mform->addElement('filemanager', 'files_filemanager', '', null, $options);
 
-        $this->set_data(array('files_filemanager' => $itemid));
+        $mform->addElement('submit', 'refresh', get_string('refreshfiles', 'tinymce_managefiles'));
+        $mform->registerNoSubmitButton('refresh');
+
+        $mform->addElement('static', '', '',
+                html_writer::tag('span', '', array('class' => 'managefilesstatus')));
+
+        $mform->addElement('header', 'deletefiles', get_string('unusedfilesheader', 'tinymce_managefiles'));
+        $mform->addElement('static', '', '',
+                html_writer::tag('span', get_string('unusedfilesdesc', 'tinymce_managefiles'), array('class' => 'managefilesunuseddesc')));
+        foreach ($files as $file) {
+            $mform->addElement('checkbox', 'deletefile['.$file.']', '', $file);
+        }
+        $mform->addElement('submit', 'delete', get_string('deleteselected', 'tinymce_managefiles'));
+
+        $PAGE->requires->js_init_call('M.tinymce_managefiles.analysefiles', array(), true);
+        $PAGE->requires->strings_for_js(array('allfilesok', 'hasmissingfiles'), 'tinymce_managefiles');
+
+        $this->set_data(array('files_filemanager' => $itemid,
+            'itemid' => $itemid,
+            'maxbytes' => $options['maxbytes'],
+            'accepted_types' => $options['accepted_types'],
+            'return_types' => $options['return_types'],
+            'context' => $options['context']->id,
+            ));
     }
 }

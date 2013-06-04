@@ -24,6 +24,7 @@
 
 require('../../../../../config.php');
 require_once('manage_form.php');
+require_once($CFG->libdir.'/filestorage/file_storage.php');
 
 require_login();
 if (isguestuser()) {
@@ -45,17 +46,45 @@ $PAGE->set_title($title);
 $PAGE->set_heading($title);
 $PAGE->set_pagelayout('popup');
 
+if ($return_types !== null) {
+    $return_types = $return_types ^ 1; // links are allowed in textarea but never allowed in filemanager
+}
+
 $options = array(
     'subdirs' => 0,
     'maxbytes' => $maxbytes,
     'maxfiles' => -1,
     'accepted_types' => $accepted_types,
     'areamaxbytes' => $areamaxbytes,
-    'return_types' => $return_types
+    'return_types' => $return_types,
+    'context' => context::instance_by_id($contextid)
 );
 
-$mform = new repository_areafiles_manage_form(null,
-        array('options' => $options, 'draftitemid' => $itemid));
+$usercontext = context_user::instance($USER->id);
+$fs = get_file_storage();
+$files = $fs->get_directory_files($usercontext->id, 'user', 'draft', $itemid, '/', false, false);
+$filenames = array();
+foreach ($files as $file) {
+    $filenames[] = $file->get_filename();
+}
+
+$mform = new tinymce_managefiles_manage_form(null,
+        array('options' => $options, 'draftitemid' => $itemid, 'files' => $filenames),
+        'post', '', array('id' => 'tinymce_managefiles_manageform'));
+
+if ($data = $mform->get_data()) {
+    if (!empty($data->deletefile)) {
+        foreach (array_keys($data->deletefile) as $filename) {
+            if ($file = $fs->get_file($usercontext->id, 'user', 'draft', $itemid, '/', $filename)) {
+                $file->delete();
+            }
+        }
+        $filenames = array_diff($filenames, array_keys($data->deletefile));
+        $mform = new tinymce_managefiles_manage_form(null,
+                array('options' => $options, 'draftitemid' => $itemid, 'files' => $filenames),
+                'post', '', array('id' => 'tinymce_managefiles_manageform'));
+    }
+}
 
 echo $OUTPUT->header();
 $mform->display();

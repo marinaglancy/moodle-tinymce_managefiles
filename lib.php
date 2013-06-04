@@ -38,9 +38,10 @@ class tinymce_managefiles extends editor_tinymce_plugin {
      */
     protected function update_init_params(array &$params, context $context,
             array $options = null) {
+        global $USER;
 
         // Add parameters for filemanager
-        $params['managefiles'] = array();
+        $params['managefiles'] = array('usercontext' => context_user::instance($USER->id)->id);
         foreach (array('itemid', 'context', 'areamaxbytes', 'maxbytes', 'return_types') as $key) {
             if (isset($options[$key])) {
                 if ($key === 'context' && is_object($options[$key])) {

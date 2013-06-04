@@ -48,6 +48,20 @@
                 });
             });
 
+            ed.addCommand('mceManageFilesUsedFiles', function() {
+                var managefiles = ed.getParam('managefiles', {}),
+                    text = ed.dom.getRoot().innerHTML,
+                    base = ed.getParam('document_base_url') + '/draftfile.php/' + managefiles['usercontext'] + '/user/draft/' + managefiles['itemid'] + '/',
+                    patt = new RegExp(base.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "(.+?)[\\?\"']", 'gm'),
+                    arr = [], match;
+                while ((match = patt.exec(text)) !== null) {
+                    if (arr.indexOf(match[1]) === -1) {
+                        arr[arr.length] = match[1];
+                    }
+                }
+                return arr;
+            });
+
             var managefiles = ed.getParam('managefiles', {});
             // REMOVE THIS CODE AFTER CHANGE IN CORE IS MADE
             // in MoodleQuickForm_editor::toHTML() insert
