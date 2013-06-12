@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Class repository_areafiles_manage_form
+ * Class tinymce_managefiles_manage_form
  *
  * @package   tinymce_managefiles
  * @copyright 2013 Marina Glancy
@@ -49,6 +49,7 @@ class tinymce_managefiles_manage_form extends moodleform {
         $mform->addElement('hidden', 'accepted_types');
         $mform->addElement('hidden', 'return_types');
         $mform->addElement('hidden', 'context');
+        $mform->addElement('hidden', 'areamaxbytes');
 
         $mform->addElement('filemanager', 'files_filemanager', '', null, $options);
 
@@ -72,6 +73,7 @@ class tinymce_managefiles_manage_form extends moodleform {
         $this->set_data(array('files_filemanager' => $itemid,
             'itemid' => $itemid,
             'maxbytes' => $options['maxbytes'],
+            'areamaxbytes' => $options['areamaxbytes'],
             'accepted_types' => $options['accepted_types'],
             'return_types' => $options['return_types'],
             'context' => $options['context']->id,
