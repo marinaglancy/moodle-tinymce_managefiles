@@ -1,7 +1,7 @@
 M.tinymce_managefiles = M.tinymce_managefiles || {}
 M.tinymce_managefiles.analysefiles = function(Y) {
     var form = Y.one('#tinymce_managefiles_manageform'),
-        usedfiles, missingfiles = '', i, delfilesfieldset
+        usedfiles, missingfiles = '', i;
     if (!form || !window.parent || !window.parent.tinyMCE.activeEditor) {
         return;
     }
@@ -14,7 +14,7 @@ M.tinymce_managefiles.analysefiles = function(Y) {
     }
     if (missingfiles !== '') {
         form.addClass('hasmissingfiles')
-        form.one('.managefilesstatus').setContent(M.str.tinymce_managefiles.hasmissingfiles + ' <ul>' + missingfiles + '</ul>')
+        form.one('.managefilesstatus').setContent(M.str.tinymce_managefiles.hasmissingfiles + ' <ul>' + missingfiles + '</ul>').addClass('error');
     }
     delfilesfieldset.all('.felement.fcheckbox').each(function(el) {
         var chb = el.one('input[type=checkbox]'),

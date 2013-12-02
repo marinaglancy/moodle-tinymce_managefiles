@@ -23,8 +23,25 @@
                     src = items[i].getAttribute('src').replace(/\?\d+$/, '');
                     items[i].setAttribute('src', src+'?'+(new Date().getTime()))
                 }
-		ed.execCommand('mceRepaint');
-		ed.focus();
+                ed.execCommand('mceRepaint');
+                ed.focus();
+            });
+
+            ed.addCommand('mceMaximizeWindow', function(w) {
+                // This function duplicates the TinyMCE windowManager code when 'maximize' button is pressed.
+                var vp = ed.dom.getViewPort(),
+                    id = w.id;
+                // Reduce viewport size to avoid scrollbars
+                vp.w -= 2;
+                vp.h -= 2;
+
+                w.oldPos = w.element.getXY();
+                w.oldSize = w.element.getSize();
+
+                w.element.moveTo(vp.x, vp.y);
+                w.element.resizeTo(vp.w, vp.h);
+                ed.dom.setStyles(id + '_ifr', {width : vp.w - w.deltaWidth, height : vp.h - w.deltaHeight});
+                ed.dom.addClass(id + '_wrapper', 'mceMaximized');
             });
 
             ed.addCommand('mceManageFiles', function() {
@@ -36,16 +53,27 @@
                 var onClose = function() {
                    ed.windowManager.onClose.remove(onClose);
                    ed.execCommand('mceForceRepaint');
-                }
+                };
                 ed.windowManager.onClose.add(onClose);
-                ed.windowManager.open({
+                var vp = ed.dom.getViewPort(),
+                        width = 900 + parseInt(ed.getLang('advimage.delta_width', 0)),
+                        height = 600 + parseInt(ed.getLang('advimage.delta_height', 0)),
+                        maximizedmode = (width >= vp.w - 2 || height >= vp.h - 2);
+                if (maximizedmode) {
+                    width = vp.w;
+                    height = vp.h;
+                }
+                w = ed.windowManager.open({
                     file : fileurl ,
-                    width : 865 + parseInt(ed.getLang('advimage.delta_width', 0)),
-                    height : 600 + parseInt(ed.getLang('advimage.delta_height', 0)),
+                    width : width,
+                    height : height,
                     inline : 1
                 }, {
                     plugin_url : url // Plugin absolute URL
                 });
+                if (maximizedmode) {
+                    ed.execCommand('mceMaximizeWindow', w);
+                }
             });
 
             ed.addCommand('mceManageFilesUsedFiles', function() {
@@ -53,25 +81,25 @@
                     text = ed.dom.getRoot().innerHTML,
                     base = ed.getParam('document_base_url') + '/draftfile.php/' + managefiles['usercontext'] + '/user/draft/' + managefiles['itemid'] + '/',
                     patt = new RegExp(base.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "(.+?)[\\?\"']", 'gm'),
-                    arr = [], match;
+                    arr = [], match, filename;
                 while ((match = patt.exec(text)) !== null) {
-                    if (arr.indexOf(match[1]) === -1) {
-                        arr[arr.length] = match[1];
+                    filename = unescape(match[1]);
+                    if (arr.indexOf(filename) === -1) {
+                        arr[arr.length] = filename;
                     }
                 }
                 return arr;
             });
 
             var managefiles = ed.getParam('managefiles', {});
-            // REMOVE THIS CODE AFTER CHANGE IN CORE IS MADE
-            // in MoodleQuickForm_editor::toHTML() insert
-            // $this->_options['itemid'] = $draftitemid;
-            // before calling to $editor->use_editor() (lib/form/editor.php line 375)
-            if (!managefiles.itemid && M.editor_tinymce.filepicker_options && M.editor_tinymce.filepicker_options[ed.id]) {
+            // Get draft area id from filepicker options.
+            if (!managefiles.itemid && M.editor_tinymce.filepicker_options
+                    && M.editor_tinymce.filepicker_options[ed.id]
+                    && M.editor_tinymce.filepicker_options[ed.id].image
+                    && M.editor_tinymce.filepicker_options[ed.id].image.itemid) {
                 managefiles.itemid = M.editor_tinymce.filepicker_options[ed.id].image.itemid;
                 ed.settings['managefiles'].itemid = managefiles.itemid;
             }
-            // END OF REMOVE
 
             // Register buttons
             if (managefiles.itemid) {

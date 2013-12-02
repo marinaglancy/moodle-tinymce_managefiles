@@ -1,5 +1,5 @@
 #tinymce_managefiles_manageform.hasunusedfiles .managefilesstatus {display:none;}
-#tinymce_managefiles_manageform.hasmissingfiles .managefilesstatus {color:red;display:inline;}
+#tinymce_managefiles_manageform.hasmissingfiles .managefilesstatus {display:inline;}
 
 #tinymce_managefiles_manageform #deletefiles,
 #tinymce_managefiles_manageform #id_deletefiles {display:none;}
